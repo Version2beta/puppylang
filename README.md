@@ -4,6 +4,7 @@ Puppy is a concatentative programming language created by Will Byrd (@webyrd) an
 
 ## Example code
 
+```
 ( This is a simplified version of the card game War written in Puppy. )
 
 ( Simple version of War: )
@@ -92,4 +93,4 @@ war : winner : [ ... ] [ > ] if :                4 4 [ 4 4 2 1 ] t
 war : winner : [ ... ] [ "tie" ] if :            4 4 [ 4 4 2 1 ] "right"
 war : tied?  : dup "tie" = :                     4 4 [ 4 4 2 1 ] "right" f
 war : [ ... ] [ swap send empty ] if :
-
+```
