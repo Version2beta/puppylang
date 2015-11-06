@@ -4,122 +4,77 @@
 
 Definitions.
 O = [0-7]
-D = [0-9]
+D = -?[0-9]
 H = [0-9a-fA-F]
 U = [A-Z]
 L = [a-z]
-A = ({U}|{L}|{D}|_|@)
+SYM = (@||&|_|\||/|<|>|\.|\+|-|\*|=)
+A = ({U}|{L}|{D}|{SYM})
 WS  = ([\000-\s]|%.*)
 
+% can't be atoms by themselves #$^(){}[]\?,
+
 Rules.
+
+\(.*\) :
+  skip_token.
+
 {D}+\.{D}+((E|e)(\+|\-)?{D}+)? :
-      {token,{float,TokenLine,list_to_float(TokenChars)}}.
-{D}+#{H}+ : base(TokenLine, TokenChars).
-{D}+    : {token,{integer,TokenLine,list_to_integer(TokenChars)}}.
-{L}{A}*   : Atom = list_to_atom(TokenChars),
-      {token,case reserved_word(Atom) of
-           true -> {Atom,TokenLine};
-           false -> {atom,TokenLine,Atom}
-             end}.
+  {token, {number, TokenLine, list_to_float(TokenChars)}}.
+
+{D}+ :
+  {token, {number, TokenLine, list_to_integer(TokenChars)}}.
+
+\: :
+  {token, {startdef, TokenLine}}.
+
+\; :
+  {token, {enddef, TokenLine}}.
+
+\[ :
+  {token, {startquote, TokenLine}}.
+
+\] :
+  {token, {endquote, TokenLine}}.
+
+\+ :
+  {token, {'_add', TokenLine}}.
+
+\- :
+  {token, {'_subtract', TokenLine}}.
+
+\* :
+  {token, {'_multiply', TokenLine}}.
+
+/ :
+  {token, {'_divide', TokenLine}}.
+
+\^ :
+  {token, {'_exponent', TokenLine}}.
+
+< :
+  {token, {'_lt', TokenLine}}.
+
+> :
+  {token, {'_gt', TokenLine}}.
+
+= :
+  {token, {'_eq', TokenLine}}.
+
+{A}* :
+  {token, {word, TokenLine, list_to_atom(TokenChars)}}.
+
 '(\\\^.|\\.|[^'])*' :
-      %% Strip quotes.
-      S = lists:sublist(TokenChars, 2, TokenLen - 2),
-      case catch list_to_atom(string_gen(S)) of
-          {'EXIT',_} -> {error,"illegal atom " ++ TokenChars};
-          Atom -> {token,{atom,TokenLine,Atom}}
-      end.
-({U}|_){A}* : {token,{var,TokenLine,list_to_atom(TokenChars)}}.
-"(\\\^.|\\.|[^"])*" :
-      %% Strip quotes.
-      S = lists:sublist(TokenChars, 2, TokenLen - 2),
-      {token,{string,TokenLine,string_gen(S)}}.
-\$(\\{O}{O}{O}|\\\^.|\\.|.) :
-      {token,{char,TokenLine,cc_convert(TokenChars)}}.
-->    : {token,{'->',TokenLine}}.
-:-    : {token,{':-',TokenLine}}.
-\|\|    : {token,{'||',TokenLine}}.
-<-    : {token,{'<-',TokenLine}}.
-\+\+    : {token,{'++',TokenLine}}.
---    : {token,{'--',TokenLine}}.
-=/=   : {token,{'=/=',TokenLine}}.
-==    : {token,{'==',TokenLine}}.
-=:=   : {token,{'=:=',TokenLine}}.
-/=    : {token,{'/=',TokenLine}}.
->=    : {token,{'>=',TokenLine}}.
-=<    : {token,{'=<',TokenLine}}.
-<=    : {token,{'<=',TokenLine}}.
-<<    : {token,{'<<',TokenLine}}.
->>    : {token,{'>>',TokenLine}}.
-::    : {token,{'::',TokenLine}}.
-[]()[}{|!?/;:,.*+#<>=-] :
-      {token,{list_to_atom(TokenChars),TokenLine}}.
-\.{WS}    : {end_token,{dot,TokenLine}}.
-{WS}+   : skip_token.
+  S = lists:sublist(TokenChars, 2, TokenLen - 2),
+    {token, {string, TokenLine, string_gen(S)}}.
+
+\.{WS} :
+  {end_token, {dot, TokenLine}}.
+
+{WS}+ :
+  skip_token.
 
 Erlang code.
-
--export([reserved_word/1]).
-
-%% reserved_word(Atom) -> Bool
-%%   return 'true' if Atom is an Erlang reserved word, else 'false'.
-
-reserved_word('after') -> true;
-reserved_word('begin') -> true;
-reserved_word('case') -> true;
-reserved_word('try') -> true;
-reserved_word('cond') -> true;
-reserved_word('catch') -> true;
-reserved_word('andalso') -> true;
-reserved_word('orelse') -> true;
-reserved_word('end') -> true;
-reserved_word('fun') -> true;
-reserved_word('if') -> true;
-reserved_word('let') -> true;
-reserved_word('of') -> true;
-reserved_word('query') -> true;
-reserved_word('receive') -> true;
-reserved_word('when') -> true;
-reserved_word('bnot') -> true;
-reserved_word('not') -> true;
-reserved_word('div') -> true;
-reserved_word('rem') -> true;
-reserved_word('band') -> true;
-reserved_word('and') -> true;
-reserved_word('bor') -> true;
-reserved_word('bxor') -> true;
-reserved_word('bsl') -> true;
-reserved_word('bsr') -> true;
-reserved_word('or') -> true;
-reserved_word('xor') -> true;
-reserved_word('spec') -> true;
-reserved_word(_) -> false.
-
-base(L, Cs) ->
-    H = string:chr(Cs, $#),
-    case list_to_integer(string:substr(Cs, 1, H-1)) of
-  B when B > 16 -> {error,"illegal base"};
-  B ->
-      case base(string:substr(Cs, H+1), B, 0) of
-    error -> {error,"illegal based number"};
-    N -> {token,{integer,L,N}}
-      end
-    end.
-
-base([C|Cs], Base, SoFar) when C >= $0, C =< $9, C < Base + $0 ->
-    Next = SoFar * Base + (C - $0),
-    base(Cs, Base, Next);
-base([C|Cs], Base, SoFar) when C >= $a, C =< $f, C < Base + $a - 10 ->
-    Next = SoFar * Base + (C - $a + 10),
-    base(Cs, Base, Next);
-base([C|Cs], Base, SoFar) when C >= $A, C =< $F, C < Base + $A - 10 ->
-    Next = SoFar * Base + (C - $A + 10),
-    base(Cs, Base, Next);
-base([_|_], _, _) -> error;     %Unknown character
-base([], _, N) -> N.
-
-cc_convert([$$,$\\|Cs]) ->
-    hd(string_escape(Cs));
-cc_convert([$$,C]) -> C.
 
 string_gen([$\\|Cs]) ->
     string_escape(Cs);
