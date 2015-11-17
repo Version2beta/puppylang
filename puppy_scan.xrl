@@ -2,22 +2,22 @@
 %%% Author  : Rob Martin
 %%% Purpose : Token definitions for Puppylang.
 
+
 Definitions.
-O = [0-7]
 D = -?[0-9]
 H = [0-9a-fA-F]
 U = [A-Z]
 L = [a-z]
-SYM = (@||&|_|\||/|<|>|\.|\+|-|\*|=)
+SYM = (`|~|\!|\?|@|\#|\$|\%|\\|&|_|\||¡|¢|£|¤|¥|¦|§|¨|©|ª|«|¬|®|¯|°|±|²|³|´|µ|¶|·|¸|¹|º|»|¼|½|¾|¿|×|÷)
 A = ({U}|{L}|{D}|{SYM})
-WS  = ([\000-\s]|%.*)
+WS  = [\000-\s]
 
-% can't be atoms by themselves #$^(){}[]\?,
 
 Rules.
 
-\(.*\) :
-  skip_token.
+'[^']*' :
+  S = lists:sublist(TokenChars, 2, TokenLen - 2),
+    {token, {string, TokenLine, string_gen(S)}}.
 
 {D}+\.{D}+((E|e)(\+|\-)?{D}+)? :
   {token, {number, TokenLine, list_to_float(TokenChars)}}.
@@ -25,17 +25,18 @@ Rules.
 {D}+ :
   {token, {number, TokenLine, list_to_integer(TokenChars)}}.
 
-\: :
-  {token, {startdef, TokenLine}}.
+{WS}+ :
+  skip_token.
 
-\; :
-  {token, {enddef, TokenLine}}.
+\(.*\) :
+  skip_token.
 
-\[ :
-  {token, {startquote, TokenLine}}.
+\:[^;]*; :
+  Chars = lists:sublist(TokenChars, 2, TokenLen - 2),
+  {token, {definition, TokenLine, Chars}}.
 
-\] :
-  {token, {endquote, TokenLine}}.
+\[[^\]]*\] :
+  {token, {quoted, TokenLine, lists:sublist(TokenChars, 2, TokenLen - 2)}}.
 
 \+ :
   {token, {'_add', TokenLine}}.
@@ -49,6 +50,9 @@ Rules.
 / :
   {token, {'_divide', TokenLine}}.
 
+\% :
+  {token, {'_mod', TokenLine}}.
+
 \^ :
   {token, {'_exponent', TokenLine}}.
 
@@ -61,18 +65,36 @@ Rules.
 = :
   {token, {'_eq', TokenLine}}.
 
-{A}* :
+depth :
+  {token, {'depth', TokenLine}}.
+
+drop :
+  {token, {'drop', TokenLine}}.
+
+dup :
+  {token, {'dup', TokenLine}}.
+
+swap :
+  {token, {'swap', TokenLine}}.
+
+rot :
+  {token, {'rot', TokenLine}}.
+
+tor :
+  {token, {'tor', TokenLine}}.
+
+over :
+  {token, {'over', TokenLine}}.
+
+quote :
+  {token, {'quote', TokenLine}}.
+
+call :
+  {token, {'call', TokenLine}}.
+
+{A}+ :
   {token, {word, TokenLine, list_to_atom(TokenChars)}}.
 
-'(\\\^.|\\.|[^'])*' :
-  S = lists:sublist(TokenChars, 2, TokenLen - 2),
-    {token, {string, TokenLine, string_gen(S)}}.
-
-\.{WS} :
-  {end_token, {dot, TokenLine}}.
-
-{WS}+ :
-  skip_token.
 
 Erlang code.
 
@@ -82,9 +104,6 @@ string_gen([C|Cs]) ->
     [C|string_gen(Cs)];
 string_gen([]) -> [].
 
-string_escape([O1,O2,O3|S]) when
-  O1 >= $0, O1 =< $7, O2 >= $0, O2 =< $7, O3 >= $0, O3 =< $7 ->
-    [(O1*8 + O2)*8 + O3 - 73*$0|string_gen(S)];
 string_escape([$^,C|Cs]) ->
     [C band 31|string_gen(Cs)];
 string_escape([C|Cs]) when C >= $\000, C =< $\s ->

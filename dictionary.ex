@@ -9,7 +9,7 @@ defmodule Dictionary do
   def _multiply([a | [b | t]]), do: [b*a | t]
   def _divide([a | [b | t]]), do: [b/a | t]
   def _exponent([a | [b | t]]), do: [:math.pow(b, a) | t]
-  def mod([a | [b | t]]), do: [rem(b, a) | t]
+  def _mod([a | [b | t]]), do: [rem(b, a) | t]
 
   # binary comparisons
   def _lt([a | [b | t]]), do: [(b < a && :t || :f) | t]
@@ -24,8 +24,8 @@ defmodule Dictionary do
   def rot([a | [b | [c | t]]]), do: [c | [a | [b | t]]]
   def tor([a | [b | [c | t]]]), do: [b | [c | [a | t]]]
   def over([a | [b | t]]), do: [b | [a | [b | t]]]
-  def call([q | t]), do: List.flatten(q, t)
   def quote(q), do: [q]
+  def call([q | t]), do: List.flatten(q, t)
 
   # control structures
   # while 

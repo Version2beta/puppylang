@@ -1,5 +1,5 @@
 defmodule Puppy do
-  :ets.new(:vocabulary, [:named_table])
+  require Dictionary
 
   def parse(s) when is_list(s) do
     {:ok, inputs, _} = :puppy_scan.string(s)
@@ -8,35 +8,39 @@ defmodule Puppy do
 
   def eval(inputs), do: eval(inputs, [])
   def eval([], stack), do: stack
-  def eval(inputs, stack) when is_list(inputs) do
-    case inputs do
-      [{:number, _linenumber, number} | rest] ->
-        eval(rest, [number | stack])
-      [{:word, _linenumber, word} | rest] ->
-        eval(rest, apply(Dictionary, word, [stack]))
-      [{:startquote, _linenumber} | rest] ->
-        { rest2, quoted } = stack_quote(rest)
-        eval(rest2, [quoted | stack])
-      [{word, _linenumber} | rest] ->
-        eval(rest, apply(Dictionary, word, [stack]))
-    end
+  def eval([{:number, _linenumber, number} | rest], stack) do
+    eval(rest, [number | stack])
+  end
+  def eval([{:quoted, _linenumber, quoted} | rest], stack) do
+    eval(rest, [parse(quoted) | stack])
+  end
+  def eval([{:definition, _linenumber, definition} | rest], stack) do
+    [{:word, _, term} | defined] = parse definition
+    :ets.insert(:puppydict, {to_char_list(term), defined})
+  end
+  def eval([{:word, _linenumber, word} | rest], stack) do
+    :erlang.function_exported(Dictionary, word, 1) &&
+    eval(rest, apply(Dictionary, word, [stack])) ||
+    eval([:call | rest], [:ets.lookup(:puppydict, word) | stack])
+  end
+  def eval([{word, _linenumber} | rest], stack) do
+    eval(rest, apply(Dictionary, word, [stack]))
   end
 
-  def stack_quote(inputs), do: stack_quote(inputs, [])
-  def stack_quote([h | inputs], quoted) do
-    case h do
-      {:endquote, _} -> { inputs, Enum.reverse(quoted) }
-      _ -> stack_quote(inputs, [h | quoted])
-    end
+  def init() do
+    :ets.new(:puppydict, [:named_table, :set])
   end
-
-  #def main(input, stack), do: eval(read(input), stack)
 
 end
 
 ExUnit.start
 defmodule PuppyTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
+
+  setup_all do
+    Puppy.init
+    :ok
+  end
 
   test "can parse an empty string" do
     assert [] == Puppy.parse('')
@@ -74,10 +78,10 @@ defmodule PuppyTest do
     assert [-1] == Puppy.eval([{:_divide, 0}], [1, -1])
     assert [1] == Puppy.eval([{:_exponent, 0}], [0, 2])
     assert [4] == Puppy.eval([{:_exponent, 0}], [2, -2])
-    assert [1] == Puppy.eval([{:word, 0, :mod}], [2, 3])
-    assert [2] == Puppy.eval([{:word, 0, :mod}], [3, 2])
+    assert [1] == Puppy.eval([{:word, 0, :_mod}], [2, 3])
+    assert [2] == Puppy.eval([{:word, 0, :_mod}], [3, 2])
     assert [42] == Puppy.parse('1 2 -3 - + 7 *') |> Puppy.eval
-    assert [50] == Puppy.parse('10 5 3 mod ^ 2 /') |> Puppy.eval
+    assert [50] == Puppy.parse('10 5 3 % ^ 2 /') |> Puppy.eval
   end
 
   test "binary comparison operators" do
@@ -126,20 +130,23 @@ defmodule PuppyTest do
   end
 
   test "can identify an input quote and put it in the stack as a list" do
-    assert {[], [:a, :b]} == Puppy.stack_quote([:a, :b, {:endquote, 0}])
-    assert {[:a, :b], []} == Puppy.stack_quote([{:endquote, 0}, :a, :b])
-    assert [[:a, :b]] == Puppy.eval([{:startquote, 0}, :a, :b, {:endquote, 0}], [])
-    assert [[:a, :b], 0] == Puppy.eval([{:startquote, 0}, :a, :b, {:endquote, 0}], [0])
     assert [[{:number, 1, 0}, {:word, 1, :a}], 1] == Puppy.parse('1 [ 0 a ]') |> Puppy.eval
+    assert [[{:number, 1, 0}, {:word, 2, :a}], 1] == Puppy.parse('1\n [ 0\n a\n ]') |> Puppy.eval
   end
 
   test "call ( [a b ] -- a b )" do
     assert [:a, :b] == Puppy.eval([{:word, 0, :call}], [[:a, :b]])
+    assert [:a, :b, 0] == Puppy.eval([{:word, 0, :call}], [[:a, :b], 0])
+    assert [:a, :b, [:a, :b]] == Puppy.eval([{:word, 0, :call}], [[:a, :b], [:a, :b]])
   end
 
   test "quote ( .. -- [ .. ] )" do
     assert [[:a]] == Puppy.eval([{:word, 0, :quote}], [:a])
     assert [[0]] == Puppy.parse('0 quote') |> Puppy.eval
+  end
+
+  test "define a new term" do
+    assert [1] == ':plus1 1 +; 0 plus1' |> Puppy.parse |> Puppy.eval
   end
 
 end
