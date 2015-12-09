@@ -12,7 +12,7 @@
 -export([format_error/1]).
 
 %% User code. This is placed here to allow extra attributes.
--file("./puppy_scan.xrl", 99).
+-file("src/puppy_scan.xrl", 99).
 
 string_gen([$\\|Cs]) ->
     string_escape(Cs);
@@ -298,7 +298,7 @@ yysuf(List, N) -> lists:nthtail(N, List).
 %% return signal either an unrecognised character or end of current
 %% input.
 
--file("./puppy_scan.erl", 300).
+-file("src/puppy_scan.erl", 300).
 yystate() -> 58.
 
 yystate(61, [247|Ics], Line, Tlen, _, _) ->
@@ -4281,134 +4281,134 @@ yyaction(25, TokenLen, YYtcs, TokenLine) ->
 yyaction(_, _, _, _) -> error.
 
 -compile({inline,yyaction_0/3}).
--file("./puppy_scan.xrl", 17).
+-file("src/puppy_scan.xrl", 17).
 yyaction_0(TokenChars, TokenLen, TokenLine) ->
      S = lists : sublist (TokenChars, 2, TokenLen - 2),
      { token, { string, TokenLine, string_gen (S) } } .
 
 -compile({inline,yyaction_1/2}).
--file("./puppy_scan.xrl", 21).
+-file("src/puppy_scan.xrl", 21).
 yyaction_1(TokenChars, TokenLine) ->
      { token, { number, TokenLine, list_to_float (TokenChars) } } .
 
 -compile({inline,yyaction_2/2}).
--file("./puppy_scan.xrl", 24).
+-file("src/puppy_scan.xrl", 24).
 yyaction_2(TokenChars, TokenLine) ->
      { token, { number, TokenLine, list_to_integer (TokenChars) } } .
 
 -compile({inline,yyaction_3/0}).
--file("./puppy_scan.xrl", 27).
+-file("src/puppy_scan.xrl", 27).
 yyaction_3() ->
      skip_token .
 
 -compile({inline,yyaction_4/0}).
--file("./puppy_scan.xrl", 30).
+-file("src/puppy_scan.xrl", 30).
 yyaction_4() ->
      skip_token .
 
 -compile({inline,yyaction_5/3}).
--file("./puppy_scan.xrl", 33).
+-file("src/puppy_scan.xrl", 33).
 yyaction_5(TokenChars, TokenLen, TokenLine) ->
      Chars = lists : sublist (TokenChars, 2, TokenLen - 2),
      { token, { definition, TokenLine, Chars } } .
 
 -compile({inline,yyaction_6/3}).
--file("./puppy_scan.xrl", 37).
+-file("src/puppy_scan.xrl", 37).
 yyaction_6(TokenChars, TokenLen, TokenLine) ->
      { token, { quoted, TokenLine, lists : sublist (TokenChars, 2, TokenLen - 2) } } .
 
 -compile({inline,yyaction_7/1}).
--file("./puppy_scan.xrl", 40).
+-file("src/puppy_scan.xrl", 40).
 yyaction_7(TokenLine) ->
      { token, { '_add', TokenLine } } .
 
 -compile({inline,yyaction_8/1}).
--file("./puppy_scan.xrl", 43).
+-file("src/puppy_scan.xrl", 43).
 yyaction_8(TokenLine) ->
      { token, { '_subtract', TokenLine } } .
 
 -compile({inline,yyaction_9/1}).
--file("./puppy_scan.xrl", 46).
+-file("src/puppy_scan.xrl", 46).
 yyaction_9(TokenLine) ->
      { token, { '_multiply', TokenLine } } .
 
 -compile({inline,yyaction_10/1}).
--file("./puppy_scan.xrl", 49).
+-file("src/puppy_scan.xrl", 49).
 yyaction_10(TokenLine) ->
      { token, { '_divide', TokenLine } } .
 
 -compile({inline,yyaction_11/1}).
--file("./puppy_scan.xrl", 52).
+-file("src/puppy_scan.xrl", 52).
 yyaction_11(TokenLine) ->
      { token, { '_mod', TokenLine } } .
 
 -compile({inline,yyaction_12/1}).
--file("./puppy_scan.xrl", 55).
+-file("src/puppy_scan.xrl", 55).
 yyaction_12(TokenLine) ->
      { token, { '_exponent', TokenLine } } .
 
 -compile({inline,yyaction_13/1}).
--file("./puppy_scan.xrl", 58).
+-file("src/puppy_scan.xrl", 58).
 yyaction_13(TokenLine) ->
      { token, { '_lt', TokenLine } } .
 
 -compile({inline,yyaction_14/1}).
--file("./puppy_scan.xrl", 61).
+-file("src/puppy_scan.xrl", 61).
 yyaction_14(TokenLine) ->
      { token, { '_gt', TokenLine } } .
 
 -compile({inline,yyaction_15/1}).
--file("./puppy_scan.xrl", 64).
+-file("src/puppy_scan.xrl", 64).
 yyaction_15(TokenLine) ->
      { token, { '_eq', TokenLine } } .
 
 -compile({inline,yyaction_16/1}).
--file("./puppy_scan.xrl", 67).
+-file("src/puppy_scan.xrl", 67).
 yyaction_16(TokenLine) ->
      { token, { depth, TokenLine } } .
 
 -compile({inline,yyaction_17/1}).
--file("./puppy_scan.xrl", 70).
+-file("src/puppy_scan.xrl", 70).
 yyaction_17(TokenLine) ->
      { token, { drop, TokenLine } } .
 
 -compile({inline,yyaction_18/1}).
--file("./puppy_scan.xrl", 73).
+-file("src/puppy_scan.xrl", 73).
 yyaction_18(TokenLine) ->
      { token, { dup, TokenLine } } .
 
 -compile({inline,yyaction_19/1}).
--file("./puppy_scan.xrl", 76).
+-file("src/puppy_scan.xrl", 76).
 yyaction_19(TokenLine) ->
      { token, { swap, TokenLine } } .
 
 -compile({inline,yyaction_20/1}).
--file("./puppy_scan.xrl", 79).
+-file("src/puppy_scan.xrl", 79).
 yyaction_20(TokenLine) ->
      { token, { rot, TokenLine } } .
 
 -compile({inline,yyaction_21/1}).
--file("./puppy_scan.xrl", 82).
+-file("src/puppy_scan.xrl", 82).
 yyaction_21(TokenLine) ->
      { token, { tor, TokenLine } } .
 
 -compile({inline,yyaction_22/1}).
--file("./puppy_scan.xrl", 85).
+-file("src/puppy_scan.xrl", 85).
 yyaction_22(TokenLine) ->
      { token, { over, TokenLine } } .
 
 -compile({inline,yyaction_23/1}).
--file("./puppy_scan.xrl", 88).
+-file("src/puppy_scan.xrl", 88).
 yyaction_23(TokenLine) ->
      { token, { quote, TokenLine } } .
 
 -compile({inline,yyaction_24/1}).
--file("./puppy_scan.xrl", 91).
+-file("src/puppy_scan.xrl", 91).
 yyaction_24(TokenLine) ->
      { token, { call, TokenLine } } .
 
 -compile({inline,yyaction_25/2}).
--file("./puppy_scan.xrl", 94).
+-file("src/puppy_scan.xrl", 94).
 yyaction_25(TokenChars, TokenLine) ->
      { token, { word, TokenLine, list_to_atom (TokenChars) } } .
 
