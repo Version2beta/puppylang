@@ -65,8 +65,14 @@ Rules.
 = :
   {token, {'_eq', TokenLine}}.
 
-depth :
-  {token, {'depth', TokenLine}}.
+true :
+  {token, {'_true', TokenLine}}.
+
+false :
+  {token, {'_false', TokenLine}}.
+
+cond :
+  {token, {'cond', TokenLine}}.
 
 drop :
   {token, {'drop', TokenLine}}.

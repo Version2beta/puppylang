@@ -1,9 +1,8 @@
 defmodule Puppy do
   require Dictionary
 
-  def puppy(s) when is_list(s) do
-    parse(s) |> eval
-  end
+  def puppy(str) when is_list(str), do: parse(str) |> eval
+  def puppy(str, stack) when is_list(str) and is_list(stack), do: parse(str) |> eval(stack)
 
   def parse(s) when is_list(s) do
     {:ok, inputs, _} = :puppy_scan.string(s)
@@ -20,7 +19,15 @@ defmodule Puppy do
     eval(rest, [string | stack])
   end
   def eval([{:quoted, _linenumber, quoted} | rest], stack) do
-    eval(rest, [parse(quoted) | stack])
+    eval(rest, [quoted | stack])
+  end
+  def eval([{:quote, _linenumber} | rest], stack) do
+    eval(rest, [to_char_list(Enum.join(Enum.reverse(stack), " "))])
+  end
+  def eval([{:cond, _linenumber} | rest], [:t | [quote | stack]]), do: eval(parse(quote) ++ rest, stack)
+  def eval([{:cond, _linenumber} | rest], [:f | [_quote | stack]]), do: eval(rest, stack)
+  def eval([{:call, _linenumber} | rest], [head | stack]) do
+    eval(parse(head) ++ rest, stack)
   end
   def eval([{:definition, _linenumber, definition} | rest], stack) do
     [{:word, _, term} | defined] = parse definition

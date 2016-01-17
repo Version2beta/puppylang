@@ -6,6 +6,10 @@ defmodule Dictionary do
   # do nothing
   def noop(stack), do: stack
 
+  # identity
+  def _false(stack), do: [:f | stack]
+  def _true(stack), do: [:t | stack]
+
   # arithmetic
   def _add([a | [b | t]]), do: [a+b | t]
   def _subtract([a | [b | t]]), do: [b-a | t]
@@ -27,13 +31,5 @@ defmodule Dictionary do
   def rot([a | [b | [c | t]]]), do: [c | [a | [b | t]]]
   def tor([a | [b | [c | t]]]), do: [b | [c | [a | t]]]
   def over([a | [b | t]]), do: [b | [a | [b | t]]]
-  def quote(q), do: [q]
-  def call([q | t]), do: List.flatten(q, t)
 
-  # control structures
-  # while 
-  # until
-  # if
-
-  #end
 end

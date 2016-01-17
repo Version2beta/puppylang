@@ -94,19 +94,17 @@ defmodule PuppyTest do
   end
 
   test "can identify an input quote and put it in the stack as a list" do
-    assert [[{:number, 1, 0}, {:word, 1, :a}], 1] == Puppy.parse('1 [ 0 a ]') |> Puppy.eval
-    assert [[{:number, 1, 0}, {:word, 2, :a}], 1] == Puppy.parse('1\n [ 0\n a\n ]') |> Puppy.eval
-  end
-
-  test "call ( [a b ] -- a b )" do
-    assert [:a, :b] == Puppy.eval([{:word, 0, :call}], [[:a, :b]])
-    assert [:a, :b, 0] == Puppy.eval([{:word, 0, :call}], [[:a, :b], 0])
-    assert [:a, :b, [:a, :b]] == Puppy.eval([{:word, 0, :call}], [[:a, :b], [:a, :b]])
+    assert [' 0 a ', 1] == Puppy.parse('1 [ 0 a ]') |> Puppy.eval
+    assert [' 0\n a\n ', 1] == Puppy.parse('1\n [ 0\n a\n ]') |> Puppy.eval
   end
 
   test "quote ( .. -- [ .. ] )" do
-    assert [[:a]] == Puppy.eval([{:word, 0, :quote}], [:a])
-    assert [[0]] == Puppy.parse('0 quote') |> Puppy.eval
+    assert ['0'] == Puppy.eval([{:quote, 0}], [0])
+    assert ['0'] == Puppy.parse('0 quote') |> Puppy.eval
+  end
+
+  test "call ([ ops ] -- (effect of ops))" do
+    assert [0] == Puppy.eval([{:call, 0}], ['0'])
   end
 
   test "error ( msg .. -- msg )" do
@@ -116,6 +114,11 @@ defmodule PuppyTest do
 
   test "define a new term" do
     assert [1] == ':plus1 1 +; 0 plus1' |> Puppy.parse |> Puppy.eval
+  end
+
+  test "cond" do
+    assert [0] == '[0] true cond' |> Puppy.parse |> Puppy.eval
+    assert [] == '[0] false cond' |> Puppy.parse |> Puppy.eval
   end
 
   test "puppy interface" do
