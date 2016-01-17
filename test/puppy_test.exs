@@ -118,4 +118,7 @@ defmodule PuppyTest do
     assert [1] == ':plus1 1 +; 0 plus1' |> Puppy.parse |> Puppy.eval
   end
 
+  test "puppy interface" do
+    assert [1] == Puppy.puppy '1'
+  end
 end

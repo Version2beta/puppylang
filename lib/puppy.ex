@@ -1,6 +1,10 @@
 defmodule Puppy do
   require Dictionary
 
+  def puppy(s) when is_list(s) do
+    parse(s) |> eval
+  end
+
   def parse(s) when is_list(s) do
     {:ok, inputs, _} = :puppy_scan.string(s)
     inputs
