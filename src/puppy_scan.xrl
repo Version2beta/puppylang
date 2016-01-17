@@ -92,6 +92,9 @@ quote :
 call :
   {token, {'call', TokenLine}}.
 
+error :
+  {token, {'error', TokenLine}}.
+
 {A}+ :
   {token, {word, TokenLine, list_to_atom(TokenChars)}}.
 

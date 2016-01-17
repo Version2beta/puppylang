@@ -1,5 +1,8 @@
 defmodule Dictionary do
 
+  # error
+  def error([h | _]), do: [h]
+
   # do nothing
   def noop(stack), do: stack
 

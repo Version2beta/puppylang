@@ -1,8 +1,8 @@
 defmodule PuppyTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
-  setup_all do
-    Puppy.init
+  setup do
+    Userdict.start_link
     :ok
   end
 
@@ -107,6 +107,11 @@ defmodule PuppyTest do
   test "quote ( .. -- [ .. ] )" do
     assert [[:a]] == Puppy.eval([{:word, 0, :quote}], [:a])
     assert [[0]] == Puppy.parse('0 quote') |> Puppy.eval
+  end
+
+  test "error ( msg .. -- msg )" do
+    assert ['reason'] == Puppy.eval([{:error, 0}], ['reason', :b, :c])
+    assert ['reason'] == Puppy.parse('0 1 \'reason\' error') |> Puppy.eval
   end
 
   test "define a new term" do
