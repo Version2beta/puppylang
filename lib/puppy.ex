@@ -4,6 +4,17 @@ defmodule Puppy do
   def puppy(str) when is_list(str), do: parse(str) |> eval
   def puppy(str, stack) when is_list(str) and is_list(stack), do: parse(str) |> eval(stack)
 
+  def puppy_debug(str) when is_list(str) do
+    inputs = parse(str)
+    IO.inspect inputs
+    eval(inputs)
+  end
+  def puppy_debug(str, stack) when is_list(str) and is_list(stack) do
+    inputs = parse(str)
+    IO.inspect inputs
+    eval(inputs, stack)
+  end
+
   def parse(s) when is_list(s) do
     {:ok, inputs, _} = :puppy_scan.string(s)
     inputs
